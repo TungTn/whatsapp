@@ -6,19 +6,16 @@ import MoreVertIcon from '@material-ui/icons/MoreVert'
 import SearchIcon from '@material-ui/icons/Search'
 import * as EmailValidator from 'email-validator'
 import { useAuthState } from 'react-firebase-hooks/auth'
+import { useCollection } from 'react-firebase-hooks/firestore'
 import { auth, db } from '../firebase'
-import { doc, setDoc, getDoc, collection, query } from 'firebase/firestore'
+import { doc, setDoc, collection, query, where } from 'firebase/firestore'
 import Chat from "../components/Chat"
 function Sidebar() {
     const [user] = useAuthState(auth)
-    const userChatRef = doc(db, 'chats', "users", 'array-contains', user.email)
-    getDoc(userChatRef)
-    const chatsSnapshot = query(doc(db, 'chats', "users", 'array-contains', user.email))
-    console.log(chatsSnapshot)
+    const userChatRef = query(collection(db, "chats"), where("users", "array-contains", user.email))
+    const [chatsSnapshot] =  useCollection(userChatRef)
 
-    const createChat = () => {
-        const chatAlreadyExist = (recipientEmail) => 
-            !!chatsSnapshot?.docs?.find((chat) => chat.data().users.find(user => user === recipientEmail)?.length > 0)
+    const createChat = () => {        
         const input = prompt('Please enter email to create new chat')
  
         if (!input) return null
@@ -27,17 +24,16 @@ function Sidebar() {
             // we need to add the chat into the db 'chats' collection if it doesnt already exist and is valid
             const userRef = doc(db, "chats", user.uid)
             setDoc(userRef, {
-                users: [user.email, input]
+                users: [input, user.email]
             })
         }
-        
-        
-        
     }
+    const chatAlreadyExist = (recipientEmail) => 
+            !!chatsSnapshot?.docs?.find((chat) => chat.data().users.find(user => user === recipientEmail)?.length > 0)
     return (
         <Container>
             <Header>
-                <UserAvatar onClick={() => auth.signOut()}/>
+                <UserAvatar src={user.photoURL} onClick={() => auth.signOut()}/>
 
                 <IconsContainer>
                     <IconButton>
@@ -59,8 +55,8 @@ function Sidebar() {
             </SidebarButton>
 
             {/* List Of Chat */}
-            {chatsSnapshot?.docs?.map((chat) => (
-                <Chat key={chat.id} id={chat.id} user={chat.data().users}/>
+            {chatsSnapshot?.docs.map((chat) => (
+                <Chat key={chat.id} id={chat.id} users={chat.data().users}/>
             ))}
                 
             
