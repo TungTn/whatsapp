@@ -9,13 +9,19 @@ function MyApp({ Component, pageProps }) {
   // Check login 
     const [user, loading] = useAuthState(auth)
     useEffect(() => {
-        if (user) {
-            const userRef = doc(db, "users", user.uid)
-            setDoc(userRef, {
-                email: user.email,
-                lastSeen: serverTimestamp(),
-                photoURL: user.photoURL
-            }, { merge: true })
+        const setUserInDb = async () => {
+            try {
+                await setDoc(doc(db, "users", user.uid), {
+                    email: user?.email,
+                    lastSeen: serverTimestamp(),
+                    photoURL: user?.photoURL
+                }, { merge: true })
+            } catch (error) {
+                
+            }              
+        }
+        if (user) {   
+            setUserInDb()         
         }
     }, [user])
     if (loading) return <Loading />

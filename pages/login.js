@@ -2,18 +2,13 @@ import React from 'react'
 import Head from 'next/head'
 import styled from 'styled-components'
 import { Button } from '@material-ui/core'
-import { auth, provider } from '../firebase'
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth"
+import { auth } from '../firebase'
+import { useSignInWithGoogle } from 'react-firebase-hooks/auth'
 
 function Login() {
+  const [signInWithGoogle] = useSignInWithGoogle(auth);
   const signIn = () => {
-    signInWithPopup(auth, provider).then((result) => {
-      const credential = GoogleAuthProvider.credentialFromResult(result)
-      const token = credential.accessToken
-      const user = result.user
-    }).catch((error) => {
-      console.log(error)
-    })
+      signInWithGoogle()
   }
   return (
     <Container>

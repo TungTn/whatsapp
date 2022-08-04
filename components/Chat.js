@@ -9,20 +9,22 @@ import { collection, query, where } from 'firebase/firestore'
 
 
 function Chat({id, users}) {
-  console.log({id, users})
   const [user] = useAuthState(auth)
-  const q = query(collection(db, "users"), where("email", "==", getRecipientEmail(users, user)))  
+
+  // get recipent Avatar 
+  const q = query(collection(db, 'users'), where('email', '==', getRecipientEmail(users, user)))  
   const [recipientSnapshot] =  useCollection(q)
+  const recipent = recipientSnapshot?.docs?.[0]?.data()
   console.log(recipientSnapshot)
 
-  const recipent = recipientSnapshot?.docs?.[0]?.data()
-
+  // get recipent Email
   const recipientEmail = getRecipientEmail(users, user)
+
   return (
     <Container>
         {
           recipent ? (
-            <UserAvatar src={recipent?.photoURL}/>
+            <UserAvatar src={recipent.photoURL}/>
           ) : (
             <UserAvatar>{recipientEmail[0]}</UserAvatar>
           )
